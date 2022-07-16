@@ -255,6 +255,7 @@ class ExchangeConnection:
             orders[symbol]["BID"][order_id] = [price, size]
         if dir == Dir.SELL:
             orders[symbol]["ASK"][order_id] = [price, size]
+        print("orders")
         print(orders)
         return orders
 
