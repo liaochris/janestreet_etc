@@ -154,7 +154,8 @@ def update_convert_holdings(current_holdings, message):
             current_holdings["GS"] -= 2 * (message["size"] / 10)
             current_holdings["MS"] -= 3 * (message["size"] / 10)
             current_holdings["WFC"] -= 2 * (message["size"] / 10)
-
+    print(current_holdings)
+    return current_holdings
 
 def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n):
     if bp_vale_bid - bp_valbz_ask >= 2 and valbz_size >= 7: 
