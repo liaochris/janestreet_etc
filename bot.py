@@ -60,6 +60,8 @@ def main():
 
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
 
+    
+
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
     # should write to code handle more types of messages (and not just print
@@ -163,13 +165,15 @@ def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n):
         exchange.send_add_message(order_id=n, symbol="VALBZ", dir=Dir.BUY, price=bp_valbz_ask, size=valbz_size)
         exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.BUY, size=valbz_size)
         exchange.send_add_message(order_id=n+2, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
-
+    else:
+        exchange.send_add_message(order_id=n+2, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
 def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n):
     if bp_valbz_bid - bp_vale_ask >= 2 and vale_size * (bp_valbz_bid - bp_vale_ask ) > 11:
         exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.BUY, price=bp_valbz_bid, size=vale_size)
         exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.SELL, size=vale_size)
         exchange.send_add_message(order_id=n+2, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=vale_size)
-
+    else:
+        exchange.send_add_message(order_id=n+2, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=vale_size)
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
 # You probably don't need to edit anything below this line, but feel free to
