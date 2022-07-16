@@ -56,7 +56,7 @@ def main():
     best_price = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
     for id in ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]:
         best_price[id]["BID"] = 0
-        best_price[id]["ASK"] = 2000
+        best_price[id]["ASK"] = 5000
 
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
 
@@ -90,8 +90,11 @@ def main():
             current_holdings = update_holdings(current_holdings, message)
             if message["symbol"] == "BOND":
                 update_bond_order(exchange, best_price, message, order_number)
-
                 order_number += 1
+            if message["symbol"] == "VALE":
+                fair_value = fair_price_vale_from_basket(best_price)
+                exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size=10)
+                exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size=10)
             print(message)
         elif message["type"] == "error":
             print(message)
@@ -107,6 +110,17 @@ def main():
 
             best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
             best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
+        
+        if current_holdings["VALE"] == 10:
+            exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10)
+            exchange.send_add_message(order_id=order_number + 4, symbol="VALBZ", dir=Dir.SELL, price = best_price["VALBZ"] - 1, size=10)
+        if current_holdings["VALE"] == -10:
+            exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10)
+            exchange.send_add_message(order_id=order_number + 4, symbol="VALBZ", dir=Dir.BUY, price = best_price["VALBZ"] + 1, size=10)
+        order_number += 10
+
+        
+        
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
