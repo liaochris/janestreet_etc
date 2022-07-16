@@ -97,6 +97,7 @@ def main():
             print(message)
         elif message["type"] == "convert":
             current_holdings = update_convert_holdings(current_holdings, message)
+            print(message)
         elif message["type"] == "book":
             def best_price_func(side):
                 if message[side]:
