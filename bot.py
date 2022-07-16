@@ -95,6 +95,8 @@ def main():
 
                 order_number += 1
             print(message)
+        elif message["type"] == "convert":
+            current_holdings = update_convert_holdings(current_holdings, message)
         elif message["type"] == "book":
             def best_price_func(side):
                 if message[side]:
@@ -130,6 +132,28 @@ def update_holdings(current_holdings, message):
         current_holdings[message["symbol"]] -= message["size"]
     print(current_holdings)
     return current_holdings
+
+def update_convert_holdings(current_holdings, message):
+    if message["symbol"] == "VALE":
+        if message["dir"] == "BUY":
+            current_holdings["VALE"] -= message["size"]
+            current_holdings["VALBZ"] += message["size"]
+        if message["dir"] == "SELL":
+            current_holdings["VALE"] += message["size"]
+            current_holdings["VALBZ"] -= message["size"]
+    if message["symbol"] == "XLF":
+        if message["dir"] == "BUY":
+            current_holdings["XLF"] -= message["size"]
+            current_holdings["BOND"] += 3 * (message["size"] / 10)
+            current_holdings["GS"] += 2 * (message["size"] / 10)
+            current_holdings["MS"] += 3 * (message["size"] / 10)
+            current_holdings["WFC"] += 2 * (message["size"] / 10)
+        if message["dir"] == "SELL":
+            current_holdings["XLF"] += message["size"]
+            current_holdings["BOND"] -= 3 * (message["size"] / 10)
+            current_holdings["GS"] -= 2 * (message["size"] / 10)
+            current_holdings["MS"] -= 3 * (message["size"] / 10)
+            current_holdings["WFC"] -= 2 * (message["size"] / 10)
 
 
 def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n):
