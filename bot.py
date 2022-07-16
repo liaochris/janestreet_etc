@@ -111,13 +111,13 @@ def main():
             if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
                     valbz_size = message['sell'][0][1]
-                    sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
-                    order_number += 3
+                    sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number, current_holdings)
+                    order_number += 4
             if message['symbol'] == 'VALE':
                 if len(message['buy'])>0:
                     vale_size = message['buy'][0][1]
-                    buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number)
-                    order_number+=3
+                    buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number, current_holdings)
+                    order_number+=4
 
             order_number = arbitrage_xlf(exchange, best_price, order_number)
         
@@ -140,6 +140,7 @@ def update_holdings(current_holdings, message):
     return current_holdings
 
 def arbitrage_xlf(exchange, best_price, n):
+    time.sleep(0.01)
     n += 1
     conversion_fee = 100
 
@@ -173,7 +174,7 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.BUY, price=best_price['MS']['BID'], size=bundle*3)
             exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.BUY, price=best_price['WFC']['BID'], size=bundle*2)
     
-    return n+1
+    return n+100
 
 def update_convert_holdings(current_holdings, message):
     if message["symbol"] == "VALE":
@@ -199,20 +200,23 @@ def update_convert_holdings(current_holdings, message):
     print(current_holdings)
     return current_holdings
 
-def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n):
+def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n, current_holdings):
     if bp_vale_bid - bp_valbz_ask >= 2 and valbz_size * (bp_vale_bid - bp_valbz_ask) > 11: 
         exchange.send_add_message(order_id=n, symbol="VALBZ", dir=Dir.BUY, price=bp_valbz_ask, size=valbz_size)
-        exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.BUY, size=valbz_size)
-        exchange.send_add_message(order_id=n+2, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
+        exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.BUY, size=current_holdings['VALBZ'])
+        exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
     else:
-        exchange.send_add_message(order_id=n+2, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
-def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n):
+        if current_holdings['VALE'] > 0:
+            exchange.send_add_message(order_id=n+3, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=current_holdings['VALE'])
+
+def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n, current_holdings):
     if bp_valbz_bid - bp_vale_ask >= 2 and vale_size * (bp_valbz_bid - bp_vale_ask ) > 11:
         exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.BUY, price=bp_valbz_bid, size=vale_size)
-        exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.SELL, size=vale_size)
+        exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.SELL, size=current_holdings['VALE'])
         exchange.send_add_message(order_id=n+2, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=vale_size)
     else:
-        exchange.send_add_message(order_id=n+2, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=vale_size)
+        if current_holdings['VALBZ'] > 0:
+            exchange.send_add_message(order_id=n+3, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=current_holdings['VALBZ'])
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
 # You probably don't need to edit anything below this line, but feel free to
