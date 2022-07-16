@@ -54,10 +54,12 @@ def main():
     # of the VALE market.
 
     best_price = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
+    best_pos = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
     for id in ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]:
         best_price[id]["BID"] = 0
         best_price[id]["ASK"] = 2000
-
+        best_pos[id]["BID"] = 0
+        best_pos[id]["ASK"] = 0
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
 
     
@@ -100,10 +102,19 @@ def main():
             def best_price_func(side):
                 if message[side]:
                     return message[side][0][0]
+            def best_pos_func(side):
+                if message[side]:
+                    return message[side][0][1]
 
             best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
             best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
 
+            best_pos[id]["BID"] = best_pos_func("buy") if best_pos_func("buy") != None else best_pos[id]["BID"]
+            best_pos[id]["ASK"] = best_pos_func("sell") if best_pos_func("sell") != None else best_pos[id]["ASK"]
+
+            print(best_price)
+            print(best_pos)
+            
             """if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
                     valbz_size = message['sell'][0][1]
