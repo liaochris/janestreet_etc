@@ -100,10 +100,12 @@ def main():
                 if message[side]:
                     return message[side][0][0]
 
-            best_price[message["symbol"]]["BID"] = best_price_func("buy")
-            best_price[message["symbol"]]["ASK"] = best_price_func("sell")
+            best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
+            best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
+
             if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
+                    print()
                     valbz_size = message['sell'][0][1]
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
                     order_number += 3
