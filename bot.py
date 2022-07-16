@@ -146,6 +146,7 @@ def arbitrage_xlf(exchange, best_price, n):
     buy_basket = best_price['BOND']['ASK'] * 3. + best_price['GS']['ASK'] * 2. + best_price['MS']['ASK'] * 3. + best_price['WFC']['ASK'] * 2
     sell_xlf = best_price['XLF']['BID'] * 10
     for bundle in [10, 5, 1]:
+        time.sleep(0.01)
         if bundle * (sell_xlf - buy_basket) > conversion_fee:
             exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=best_price['BOND']['ASK'], size=bundle*3)
             exchange.send_add_message(order_id=n+1, symbol="GS", dir=Dir.BUY, price=best_price['GS']['ASK'], size=bundle*2)
@@ -159,6 +160,7 @@ def arbitrage_xlf(exchange, best_price, n):
     buy_xlf = best_price['XLF']['ASK'] * 10
     sell_basket = best_price['BOND']['BID'] * 3. + best_price['GS']['BID'] * 2. + best_price['MS']['BID'] * 3. + best_price['WFC']['BID'] * 2
     for bundle in [10, 5, 1]:
+        time.sleep(0.01)
         if bundle * (sell_basket - buy_xlf) > conversion_fee:
             exchange.send_add_message(order_id=n+6, symbol="XLF", dir=Dir.BUY, price=best_price['XLF']['ASK'], size=bundle*10)
 
@@ -169,7 +171,7 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.BUY, price=best_price['MS']['BID'], size=bundle*3)
             exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.BUY, price=best_price['WFC']['BID'], size=bundle*2)
     
-    return n+1
+    return n+100
 
 def update_convert_holdings(current_holdings, message):
     if message["symbol"] == "VALE":
