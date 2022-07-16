@@ -86,7 +86,7 @@ def main():
         if message["type"] == "close":
             print("The round has ended")
             timestamp = datetime.now()
-            with open(f'pricelog_{timestamp}', 'w') as f:
+            with open(f'pricelog_{timestamp[12:]}', 'w') as f:
                 f.write(json.dumps(price_over_time))
             break
         elif message["type"] == "book":
