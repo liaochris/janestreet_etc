@@ -10,6 +10,7 @@ from enum import Enum
 import time
 import socket
 import json
+import numpy as np
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
@@ -27,11 +28,39 @@ team_name = "SALMONSHARKS"
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
 
+class MovingAverager:
+    def __init__(self, window=5):
+        self.queue = []
+        self.window = window
+    
+    def add(self, e):
+        if len(self.queue) < self.window:
+            self.queue.append(e)
+        else:
+            self.queue.pop(0)
+            self.queue.append(e)
+    
+    def get(self):
+        return np.mean(self.queue)
+    
+    def uptrend(self):
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] < 0:
+                return False
+        return True
+    
+    def downtrend(self):
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] > 0:
+                return False
+        return True
 
 def main():
     args = parse_arguments()
 
     exchange = ExchangeConnection(args=args)
+
+    averager = MovingAverager()
 
     # Store and print the "hello" message received from the exchange. This
     # contains useful information about your positions. Normally you start with
@@ -44,10 +73,10 @@ def main():
     # unlikely it will be traded against. Maybe there is a better price to
     # pick? Also, you will need to send more orders over time.
     order_number = 1
-    #exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.BUY, price=999, size=100)
+    """exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.BUY, price=999, size=100)
     order_number += 1
-    #exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
-    order_number += 1
+    exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
+    order_number += 1"""
 
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
@@ -89,12 +118,12 @@ def main():
         elif message["type"] == "fill":
             current_holdings = update_holdings(current_holdings, message)
             if message["symbol"] == "BOND":
-                update_bond_order(exchange, best_price, message, order_number)
+                #update_bond_order(exchange, best_price, message, order_number)
                 order_number += 1
             if message["symbol"] == "VALE":
                 fair_value = fair_price_vale_from_basket(best_price)
-                exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size=10)
-                exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size=10)
+                #exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size=10)
+                #exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size=10)
             print(message)
         elif message["type"] == "error":
             print(message)
@@ -114,23 +143,37 @@ def main():
             
             if best_price != old_best_price:
                 print(best_price)
+            if message["symbol"] = 'XLF':
+                current_mid_price = (best_price[message["symbol"]]["BID"] + best_price[message["symbol"]]["ASK"]) / 2
+                averager.add(current_mid_price)
+                if abs(current_holdings['XLF']) < 50:
+                    if averager.uptrend():
+                        print('uptrend, buying')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.BUY, price=best_price["XLF"]['ASK'], size=5)
+                        order_number += 1
+                    if averager.downtrend():
+                        print('downtrend, selling')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.SELL, price=best_price["XLF"]['BID'], size=5)
+                        order_number += 1
+            
 
-        if current_holdings["VALE"] == 10:
+        """if current_holdings["VALE"] == 10:
             exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10)
             exchange.send_add_message(order_id=order_number + 4, symbol="VALBZ", dir=Dir.SELL, price = best_price["VALBZ"] - 1, size=10)
         if current_holdings["VALE"] == -10:
             exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10)
             exchange.send_add_message(order_id=order_number + 4, symbol="VALBZ", dir=Dir.BUY, price = best_price["VALBZ"] + 1, size=10)
+        """
         order_number += 10
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
     if message["dir"] == "BUY":
         price = min(message["price"], best_price["BOND"]["BID"], 999)
-        #exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
+        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
     if message["dir"] == "SELL":
         price = max(message["price"], best_price["BOND"]["ASK"], 1001)
-        #exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.SELL, price=price, size=100 - size)
+        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.SELL, price=price, size=100 - size)
 
 def update_holdings(current_holdings, message):
     if message["dir"] == "BUY":
