@@ -119,7 +119,7 @@ def main():
                 msg = "BID"
             else:
                 msg = "ASK"
-        
+            print(orders)
             oldsize = orders[message['symbol']][msg][message['order_id']][1]
             if message['size'] >= oldsize:
                 del orders[message['symbol']][msg][message['order_id']]
@@ -127,9 +127,8 @@ def main():
                 newsize = oldsize - message['size']
                 oldorder = orders[message['symbol']][msg][message['order_id']]
                 orders[message['symbol']][msg][message['order_id']] = [oldorder[0], newsize]
-            print("message")
             print(message)
-            print("orders")
+            print("orders filled")
             print(orders)
 
 
@@ -273,7 +272,7 @@ class ExchangeConnection:
             orders[symbol]["BID"][order_id] = [price, size]
         if dir == Dir.SELL:
             orders[symbol]["ASK"][order_id] = [price, size]
-        print("orders")
+        print("orders added")
         print(orders)
         return orders
 
