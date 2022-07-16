@@ -111,7 +111,7 @@ def main():
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
                     order_number += 3
             if message['symbol'] == 'VALE':
-                if len(message['sell'])>0:
+                if len(message['buy'])>0:
                     vale_size = message['buy'][0][1]
                     buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number)
                     order_number+=3
