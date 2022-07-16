@@ -44,23 +44,29 @@ class MovingAverager:
         return np.mean(self.queue)
     
     def uptrend(self):
+        if len(self.queue) < self.window:
+            return False
+        neg_count = 0
         for i in range(1, self.window):
             if self.queue[i] - self.queue[i-1] < 0:
-                return False
-        return True
+                neg_count += 1
+        return neg_count < 0.2 * self.window
     
     def downtrend(self):
+        if len(self.queue) < self.window:
+            return False
+        pos_count = 0
         for i in range(1, self.window):
             if self.queue[i] - self.queue[i-1] > 0:
-                return False
-        return True
+                pos_count += 1
+        return pos_count < 0.2 * self.window
 
 def main():
     args = parse_arguments()
 
     exchange = ExchangeConnection(args=args)
 
-    averager = MovingAverager()
+    averager = MovingAverager(50)
 
     # Store and print the "hello" message received from the exchange. This
     # contains useful information about your positions. Normally you start with
@@ -143,17 +149,17 @@ def main():
             
             if best_price != old_best_price:
                 print(best_price)
-            if message["symbol"] = 'XLF':
+            if message["symbol"] == 'MS':
                 current_mid_price = (best_price[message["symbol"]]["BID"] + best_price[message["symbol"]]["ASK"]) / 2
                 averager.add(current_mid_price)
-                if abs(current_holdings['XLF']) < 50:
+                if abs(current_holdings['MS']) < 75:
                     if averager.uptrend():
                         print('uptrend, buying')
-                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.BUY, price=best_price["XLF"]['ASK'], size=5)
+                        exchange.send_add_message(order_id=order_number+1, symbol="MS", dir=Dir.SELL, price=best_price["MS"]['ASK'], size=1)
                         order_number += 1
                     if averager.downtrend():
                         print('downtrend, selling')
-                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.SELL, price=best_price["XLF"]['BID'], size=5)
+                        exchange.send_add_message(order_id=order_number+1, symbol="MS", dir=Dir.BUY, price=best_price["MS"]['BID'], size=1)
                         order_number += 1
             
 
