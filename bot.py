@@ -104,9 +104,14 @@ def main():
             def best_price_func(side):
                 if message[side]:
                     return message[side][0][0]
+            old_best_price = best_price.copy()
 
             best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
             best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
+
+            if best_price != old_best_price:
+                print(best_price)
+
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
