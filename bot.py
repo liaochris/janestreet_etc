@@ -119,7 +119,6 @@ def main():
                 msg = "BID"
             else:
                 msg = "ASK"
-        
             oldsize = orders[message['symbol']][msg][message['order_id']][1]
             if message['size'] >= oldsize:
                 del orders[message['symbol']][msg][message['order_id']]
@@ -129,9 +128,6 @@ def main():
                 orders[message['symbol']][msg][message['order_id']] = [oldorder[0], newsize]
             print("message")
             print(message)
-            print("orders")
-            print(orders)
-
 
         elif message["type"] == "error":
             print(message)
@@ -152,10 +148,10 @@ def main():
             if best_price != old_best_price:
                 print(best_price)
         
-        if current_holdings["VALE"] == 10:
-            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10, orders = orders)
-        if current_holdings["VALBZ"] == 10:
-            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10, orders = orders)
+        if best_price["VALE"]["BID"] < best_price["VALBZ"]["ASK"] - 5:
+            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=Dir.SELL, size = 5, orders = orders)
+        if best_price["VALE"]["ASK"] > best_price["VALBZ"]["BID"] + 5:
+            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=Dir.BUY,size = 5, orders = orders)
         order_number += 10
 
         if temp and ((datetime.now() - start).total_seconds() > 1):
