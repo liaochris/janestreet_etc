@@ -86,8 +86,6 @@ def main():
         if message["type"] == "close":
             print("The round has ended")
             break
-        elif message["type"] == "reject":
-            print(message)
         elif message["type"] == "fill":
             current_holdings = update_holdings(current_holdings, message)
             if message["symbol"] == "BOND":
