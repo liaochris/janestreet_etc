@@ -148,7 +148,8 @@ def arbitrage_xlf(exchange, best_price, n):
         margin = bundle * (sell_xlf - buy_basket) - conversion_fee
         if margin > 0:
             print(f'margin={margin}, bundle={bundle}, sell_xlf={sell_xlf}, buy_basket={buy_basket}')
-            exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=best_price['BOND']['ASK'], size=bundle*3)
+            # not buying bond ever
+            # exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=best_price['BOND']['ASK'], size=bundle*3)
             exchange.send_add_message(order_id=n+1, symbol="GS", dir=Dir.BUY, price=best_price['GS']['ASK'], size=bundle*2)
             exchange.send_add_message(order_id=n+2, symbol="MS", dir=Dir.BUY, price=best_price['MS']['ASK'], size=bundle*3)
             exchange.send_add_message(order_id=n+3, symbol="WFC", dir=Dir.BUY, price=best_price['WFC']['ASK'], size=bundle*2)
@@ -167,10 +168,9 @@ def arbitrage_xlf(exchange, best_price, n):
 
             exchange.send_convert_message(order_id=n+7, symbol="XLF", dir=Dir.SELL, size=bundle*10)
 
-            exchange.send_add_message(order_id=n+8, symbol="BOND", dir=Dir.BUY, price=best_price['BOND']['BID'], size=bundle*3)
-            exchange.send_add_message(order_id=n+9, symbol="GS", dir=Dir.BUY, price=best_price['GS']['BID'], size=bundle*2)
-            exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.BUY, price=best_price['MS']['BID'], size=bundle*3)
-            exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.BUY, price=best_price['WFC']['BID'], size=bundle*2)
+            exchange.send_add_message(order_id=n+9, symbol="GS", dir=Dir.SELL, price=best_price['GS']['BID'], size=bundle*2)
+            exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.SELL, price=best_price['MS']['BID'], size=bundle*3)
+            exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.SELL, price=best_price['WFC']['BID'], size=bundle*2)
     
     return n+100
 
