@@ -158,13 +158,13 @@ def update_convert_holdings(current_holdings, message):
     return current_holdings
 
 def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n):
-    if bp_vale_bid - bp_valbz_ask >= 2 and valbz_size >= 7: 
+    if bp_vale_bid - bp_valbz_ask >= 2 and valbz_size * (bp_vale_bid - bp_valbz_ask) > 11: 
         exchange.send_add_message(order_id=n, symbol="VALBZ", dir=Dir.BUY, price=bp_valbz_ask, size=valbz_size)
         exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.BUY, size=valbz_size)
         exchange.send_add_message(order_id=n+2, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=valbz_size)
 
 def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n):
-    if bp_valbz_bid - bp_vale_ask >= 2 and vale_size >= 7:
+    if bp_valbz_bid - bp_vale_ask >= 2 and vale_size * (bp_valbz_bid - bp_vale_ask ) > 11:
         exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.BUY, price=bp_valbz_bid, size=vale_size)
         exchange.send_convert_message(order_id=n+1, symbol="VALE", dir=Dir.SELL, size=vale_size)
         exchange.send_add_message(order_id=n+2, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=vale_size)
