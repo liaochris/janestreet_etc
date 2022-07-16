@@ -161,7 +161,6 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_convert_message(order_id=n+4, symbol="XLF", dir=Dir.BUY, size=bundle*10)
 
             exchange.send_add_message(order_id=n+5, symbol="XLF", dir=Dir.SELL, price=best_price['XLF']['BID'], size=bundle*10)
-            time.sleep(0.01)
     
     buy_xlf = best_price['XLF']['ASK'] * 10
     sell_basket = best_price['BOND']['BID'] * 3. + best_price['GS']['BID'] * 2. + best_price['MS']['BID'] * 3. + best_price['WFC']['BID'] * 2
@@ -176,7 +175,6 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_add_message(order_id=n+9, symbol="GS", dir=Dir.SELL, price=best_price['GS']['BID'], size=bundle*2)
             exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.SELL, price=best_price['MS']['BID'], size=bundle*3)
             exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.SELL, price=best_price['WFC']['BID'], size=bundle*2)
-            time.sleep(0.01)
     
     return n+100
 
