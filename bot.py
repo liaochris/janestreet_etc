@@ -98,8 +98,8 @@ def main():
                 order_number += 1
             print(message)
         elif message["type"] == "convert":
-            current_holdings = update_convert_holdings(current_holdings, message)
             print(message)
+            current_holdings = update_convert_holdings(current_holdings, message)
         elif message["type"] == "book":
             def best_price_func(side):
                 if message[side]:
@@ -113,6 +113,7 @@ def main():
                     valbz_size = message['sell'][0][1]
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number, current_holdings)
                     order_number += 4
+
             if message['symbol'] == 'VALE':
                 if len(message['buy'])>0:
                     vale_size = message['buy'][0][1]
@@ -205,7 +206,7 @@ def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n, current_holding
     else:
         if current_holdings['VALE'] > 0:
             exchange.send_add_message(order_id=n+3, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=current_holdings['VALE'])
-
+            print("SOLD VALE")
 def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n, current_holdings):
     if bp_valbz_bid - bp_vale_ask >= 2 and vale_size * (bp_valbz_bid - bp_vale_ask ) > 11:
         exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.BUY, price=bp_valbz_bid, size=vale_size)
@@ -214,6 +215,7 @@ def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n, current_holdings)
     else:
         if current_holdings['VALBZ'] > 0:
             exchange.send_add_message(order_id=n+3, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=current_holdings['VALBZ'])
+            print("SOLD VALBZ")
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
 # You probably don't need to edit anything below this line, but feel free to
