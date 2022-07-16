@@ -118,8 +118,9 @@ def main():
                     vale_size = message['buy'][0][1]
                     buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number, current_holdings)
                     order_number+=3
+
+            order_number = arbitrage_xlf(exchange, best_price, order_number)
         
-        order_number = arbitrage_xlf(exchange, best_price, order_number)
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
