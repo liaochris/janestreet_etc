@@ -9,6 +9,7 @@ from collections import deque
 from enum import Enum
 import time
 import socket
+from datetime import datetime
 import json
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
@@ -59,6 +60,8 @@ def main():
 
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
 
+    start = datetime.now()
+    temp = True
     
 
     # Here is the main loop of the program. It will continue to read and
@@ -131,6 +134,20 @@ def main():
             exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10)
         order_number += 10
 
+        if temp and ((datetime.now() - start).total_seconds() > 1):
+            fair_value = fair_price_vale_from_basket(best_price)
+            exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= 10)
+            order_number += 1
+            exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= 10)
+            order_number += 1
+            exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 10, size= 10)
+            order_number += 1
+            exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 10, size= 10)
+            order_number += 1
+            temp = False
+
+
+
 
 
 def update_bond_order(exchange, best_price, message, n):
@@ -154,14 +171,14 @@ def fair_price_vale_from_basket(best_price):
     def mid_price(symbol):
         return 0.5 * (best_price[symbol]['ASK'] + best_price[symbol]['BID'])
 
-    return (mid_price('VALBZ') + mid_price('VALE')) / 2
+    return int((mid_price('VALBZ') + mid_price('VALE')) / 2)
 
 
 def fair_price_xlf_from_basket(best_price):
     def mid_price(symbol):
         return 0.5 * (best_price[symbol]['ASK'] + best_price[symbol]['BID'])
 
-    return (mid_price('BOND') * 3 + mid_price('GS') * 2 + mid_price('MS') * 3 + mid_price('WFC') * 2) / 10
+    return int((mid_price('BOND') * 3 + mid_price('GS') * 2 + mid_price('MS') * 3 + mid_price('WFC') * 2) / 10)
 
 def update_convert_holdings(current_holdings, message):
     if message["symbol"] == "VALE":
