@@ -116,6 +116,7 @@ def main():
                     order_number+=3
 
 def update_bond_order(exchange, best_price, message, n):
+    size = message["size"]
     if message["dir"] == "BUY":
         price = min(message["price"], best_price["BOND"]["BID"], 999)
         exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
