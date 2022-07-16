@@ -54,10 +54,12 @@ def main():
     # of the VALE market.
 
     best_price = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
+    best_pos = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
     for id in ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]:
         best_price[id]["BID"] = 0
         best_price[id]["ASK"] = 2000
-
+        best_pos[id]["BID"] = 0
+        best_pos[id]["ASK"] = 0
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
 
     
@@ -94,29 +96,45 @@ def main():
                 order_number += 1
             print(message)
         elif message["type"] == "convert":
-            current_holdings = update_convert_holdings(current_holdings, message)
             print(message)
+            current_holdings = update_convert_holdings(current_holdings, message)
         elif message["type"] == "book":
             def best_price_func(side):
                 if message[side]:
                     return message[side][0][0]
+            def best_pos_func(side):
+                if message[side]:
+                    return message[side][0][1]
 
             best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
             best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
 
-            if message['symbol'] == 'VALBZ':
+            best_pos[id]["BID"] = best_pos_func("buy") if best_pos_func("buy") != None else best_pos[id]["BID"]
+            best_pos[id]["ASK"] = best_pos_func("sell") if best_pos_func("sell") != None else best_pos[id]["ASK"]
+
+            print(best_price)
+            print(best_pos)
+            
+            """if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
                     valbz_size = message['sell'][0][1]
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number, current_holdings)
                     order_number += 4
+
             if message['symbol'] == 'VALE':
                 if len(message['buy'])>0:
                     vale_size = message['buy'][0][1]
                     buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number, current_holdings)
-                    order_number+=4
+                    order_number+=4"""
 
-            order_number = arbitrage_xlf(exchange, best_price, order_number)
-        
+            # order_number = arbitrage_xlf(exchange, best_price, order_number)
+
+      """      if current_holdings['VALBZ'] > 0:
+                exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.BUY, size=current_holdings['VALBZ'])
+            elif current_holdings['VALBZ'] < 0:
+                exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.SELL, size=current_holdings['VALE'])
+            order_number += 10
+            """
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
@@ -160,7 +178,6 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_convert_message(order_id=n+4, symbol="XLF", dir=Dir.BUY, size=bundle*10)
 
             exchange.send_add_message(order_id=n+5, symbol="XLF", dir=Dir.SELL, price=best_price['XLF']['BID'], size=bundle*10)
-            time.sleep(0.01)
     
     buy_xlf = best_price['XLF']['ASK'] * 10
     sell_basket = best_price['BOND']['BID'] * 3. + best_price['GS']['BID'] * 2. + best_price['MS']['BID'] * 3. + best_price['WFC']['BID'] * 2
@@ -175,7 +192,6 @@ def arbitrage_xlf(exchange, best_price, n):
             exchange.send_add_message(order_id=n+9, symbol="GS", dir=Dir.SELL, price=best_price['GS']['BID'], size=bundle*2)
             exchange.send_add_message(order_id=n+10, symbol="MS", dir=Dir.SELL, price=best_price['MS']['BID'], size=bundle*3)
             exchange.send_add_message(order_id=n+11, symbol="WFC", dir=Dir.SELL, price=best_price['WFC']['BID'], size=bundle*2)
-            time.sleep(0.01)
     
     return n+100
 
@@ -211,7 +227,7 @@ def sell_adr(exchange, bp_vale_bid, bp_valbz_ask, valbz_size, n, current_holding
     else:
         if current_holdings['VALE'] > 0:
             exchange.send_add_message(order_id=n+3, symbol="VALE", dir=Dir.SELL, price = bp_valbz_ask, size=current_holdings['VALE'])
-
+            print("SOLD VALE")
 def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n, current_holdings):
     if bp_valbz_bid - bp_vale_ask >= 2 and vale_size * (bp_valbz_bid - bp_vale_ask ) > 11:
         exchange.send_add_message(order_id=n, symbol="VALE", dir=Dir.BUY, price=bp_valbz_bid, size=vale_size)
@@ -220,6 +236,7 @@ def buy_adr(exchange, bp_vale_ask, bp_valbz_bid, vale_size, n, current_holdings)
     else:
         if current_holdings['VALBZ'] > 0:
             exchange.send_add_message(order_id=n+3, symbol="VALBZ", dir=Dir.SELL, price = bp_valbz_bid, size=current_holdings['VALBZ'])
+            print("SOLD VALBZ")
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
 # You probably don't need to edit anything below this line, but feel free to
