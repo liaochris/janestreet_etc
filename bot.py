@@ -273,7 +273,7 @@ class ExchangeConnection:
         if dir == Dir.BUY:
             orders[symbol]["CONVERT"][order_id] = ["BUY", size]
         if dir == Dir.SELL:
-            orders[symbol]["ASK"][order_id] = ["SELL", size]
+            orders[symbol]["CONVERT"][order_id] = ["SELL", size]
         print(orders)
         return orders
 
