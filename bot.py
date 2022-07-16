@@ -116,7 +116,7 @@ def main():
                     buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number, current_holdings)
                     order_number+=4"""
 
-            order_number = arbitrage_xlf(exchange, best_price, order_number)
+            # order_number = arbitrage_xlf(exchange, best_price, order_number)
 
       """      if current_holdings['VALBZ'] > 0:
                 exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.BUY, size=current_holdings['VALBZ'])
@@ -124,7 +124,6 @@ def main():
                 exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.SELL, size=current_holdings['VALE'])
             order_number += 10
             """
-            time.sleep(.1)
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
