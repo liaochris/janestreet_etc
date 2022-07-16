@@ -104,16 +104,16 @@ def main():
                 fair_value = fair_price_vale_from_basket(best_price)
                 size = message["size"]
                 if message["dir"] == "BUY":
-                    exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= size, orders = orders)
                 else:
-                    exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= size, orders = orders)
             if message["symbol"] == "VALBZ":
                 fair_value = fair_price_vale_from_basket(best_price)
                 size = message["size"]
                 if message["dir"] == "BUY":
-                    exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 5, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 5, size= size, orders = orders)
                 else:
-                    exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 5, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 5, size= size, orders = orders)
             
             if dir == Dir.SELL:
                 msg = "BID"
@@ -160,13 +160,13 @@ def main():
 
         if temp and ((datetime.now() - start).total_seconds() > 1):
             fair_value = fair_price_vale_from_basket(best_price)
-            exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= 10)
+            orders = exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= 10, orders = orders)
             order_number += 1
-            exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= 10)
+            orders = exchange.send_add_message(order_id=order_number, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= 10,orders = orders)
             order_number += 1
-            exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 10, size= 10)
+            orders = exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 10, size= 10, orders = orders)
             order_number += 1
-            exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 10, size= 10)
+            orders = exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 10, size= 10, orders = orders)
             order_number += 1
             temp = False
 
