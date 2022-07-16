@@ -135,6 +135,12 @@ def update_holdings(current_holdings, message):
     print(current_holdings)
     return current_holdings
 
+def fair_price_xlf_from_basket(best_price):
+    def mid_price(symbol):
+        return 0.5 * (best_price[symbol]['ASK'] + best_price[symbol]['BID'])
+
+    return mid_price('BOND') * 3. + mid_price('GS') * 2. + mid_price('MS') * 3. + mid_price('WFC') * 2.
+
 def arbitrage_xlf(exchange, best_price, n):
     n += 1
     conversion_fee = 100
