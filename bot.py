@@ -123,6 +123,7 @@ def main():
             elif current_holdings['VALBZ'] < 0:
                 exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.SELL, size=current_holdings['VALE'])
             order_number += 10
+            time.sleep(.1)
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
