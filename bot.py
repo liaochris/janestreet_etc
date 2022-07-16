@@ -27,6 +27,38 @@ team_name = "SALMONSHARKS"
 # price, and it prints the current prices for VALE every second. The sample
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
+class MovingAverager:
+    def __init__(self, window=5):
+        self.queue = []
+        self.window = window
+    
+    def add(self, e):
+        if len(self.queue) < self.window:
+            self.queue.append(e)
+        else:
+            self.queue.pop(0)
+            self.queue.append(e)
+    
+    def get(self):
+        return np.mean(self.queue)
+    
+    def uptrend(self):
+        if len(self.queue) < self.window:
+            return False
+        neg_count = 0
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] < 0:
+                neg_count += 1
+        return neg_count < 0.2 * self.window
+    
+    def downtrend(self):
+        if len(self.queue) < self.window:
+            return False
+        pos_count = 0
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] > 0:
+                pos_count += 1
+        return pos_count < 0.2 * self.window
 
 
 def main():
@@ -85,6 +117,7 @@ def main():
     # rate-limited and ignored. Please, don't do that!
     while True:
         message = exchange.read_message()
+        averager = MovingAverager(50)
 
         # Some of the message types below happen infrequently and contain
         # important information to help you understand what your bot is doing,
@@ -142,6 +175,19 @@ def main():
 
             if best_price != old_best_price:
                 print(best_price)
+            
+            if message["symbol"] == 'XLF':
+                current_mid_price = (best_price[message["symbol"]]["BID"] + best_price[message["symbol"]]["ASK"]) / 2
+                averager.add(current_mid_price)
+                if abs(current_holdings['XLF']) < 75:
+                    if averager.uptrend():
+                        print('uptrend, buying')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.SELL, price=best_price["XLF"]['ASK'], size=1)
+                        order_number += 1
+                    if averager.downtrend():
+                        print('downtrend, selling')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.BUY, price=best_price["XLF"]['BID'], size=1)
+                        order_number += 1
         
         if best_price["VALE"]["ASK"] < best_price["VALBZ"]["BID"] - 10:
             fair_value = fair_price_vale_from_basket(best_price)
