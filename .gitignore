@@ -1,0 +1,13 @@
+.bash_history
+.bash_logout
+.bashrc
+.cache/
+.emacs
+.gnupg/
+.merlin
+.opam/
+.profile
+.ssh/
+.sudo_as_admin_successful
+.vscode-server/
+.wget-hsts
