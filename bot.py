@@ -46,7 +46,7 @@ def main():
     order_number = 1
     exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.BUY, price=999, size=100)
     order_number += 1
-    exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.ASK, price=1001, size=100)
+    exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
     order_number += 1
 
     # Set up some variables to track the bid and ask price of a symbol. Right
@@ -91,7 +91,7 @@ def main():
         elif message["type"] == "fill":
             current_holdings = update_holdings(current_holdings, message)
             if message["symbol"] == "BOND":
-                update_bond_order(exchange, best_price, order_number)
+                update_bond_order(exchange, best_price, message, order_number)
 
                 order_number += 1
             print(message)
@@ -107,10 +107,10 @@ def main():
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
     if message["dir"] == "BUY":
-        price = min(message["price"], best_price["BOND"]["BUY"])
+        price = min(message["price"], best_price["BOND"]["BID"], 999)
         exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
     if message["dir"] == "SELL":
-        price = min(message["price"], best_price["BOND"]["SELL"])
+        price = max(message["price"], best_price["BOND"]["ASK"], 1001)
         exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
 
 def update_holdings(current_holdings, message):
@@ -118,6 +118,7 @@ def update_holdings(current_holdings, message):
         current_holdings[message["symbol"]] += message["size"]
     if message["dir"] == "SELL":
         current_holdings[message["symbol"]] -= message["size"]
+    return current_holdings
 
 
 
