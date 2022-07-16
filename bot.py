@@ -244,7 +244,5 @@ def parse_arguments():
 
 if __name__ == "__main__":
     # Check that [team_name] has been updated.
-    assert (
-            team_name != "SALMONSHARKS"
-    ), "Please put your team name in the variable [team_name]."
+    team_name = "SALMONSHARKS"
     main()
