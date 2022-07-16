@@ -86,8 +86,6 @@ def main():
         if message["type"] == "close":
             print("The round has ended")
             break
-        elif message["type"] == "error":
-            print(message)
         elif message["type"] == "reject":
             print(message)
         elif message["type"] == "fill":
