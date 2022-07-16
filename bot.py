@@ -146,7 +146,9 @@ def arbitrage_xlf(exchange, best_price, n):
     buy_basket = best_price['BOND']['ASK'] * 3. + best_price['GS']['ASK'] * 2. + best_price['MS']['ASK'] * 3. + best_price['WFC']['ASK'] * 2
     sell_xlf = best_price['XLF']['BID'] * 10
     for bundle in [10, 5, 1]:
-        if bundle * (sell_xlf - buy_basket) > conversion_fee:
+        margin = bundle * (sell_xlf - buy_basket) - conversion_fee
+        if margin > 0:
+            print(f'margin={margin}, bundle={bundle}, sell_xlf={sell_xlf}, buy_basket={buy_basket}')
             exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=best_price['BOND']['ASK'], size=bundle*3)
             exchange.send_add_message(order_id=n+1, symbol="GS", dir=Dir.BUY, price=best_price['GS']['ASK'], size=bundle*2)
             exchange.send_add_message(order_id=n+2, symbol="MS", dir=Dir.BUY, price=best_price['MS']['ASK'], size=bundle*3)
@@ -159,7 +161,9 @@ def arbitrage_xlf(exchange, best_price, n):
     buy_xlf = best_price['XLF']['ASK'] * 10
     sell_basket = best_price['BOND']['BID'] * 3. + best_price['GS']['BID'] * 2. + best_price['MS']['BID'] * 3. + best_price['WFC']['BID'] * 2
     for bundle in [10, 5, 1]:
-        if bundle * (sell_basket - buy_xlf) > conversion_fee:
+        margin = bundle * (sell_basket - buy_xlf) - conversion_fee
+        if margin > 0:
+            print(f'margin={margin}, bundle={bundle}, sell_basket={sell_basket}, buy_xlf={buy_xlf}')
             exchange.send_add_message(order_id=n+6, symbol="XLF", dir=Dir.BUY, price=best_price['XLF']['ASK'], size=bundle*10)
 
             exchange.send_convert_message(order_id=n+7, symbol="XLF", dir=Dir.SELL, size=bundle*10)
