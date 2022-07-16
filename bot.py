@@ -105,7 +105,6 @@ def main():
 
             if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
-                    print()
                     valbz_size = message['sell'][0][1]
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
                     order_number += 3
