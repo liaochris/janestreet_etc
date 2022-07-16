@@ -10,6 +10,7 @@ from enum import Enum
 import time
 import socket
 import json
+import numpy as np
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # Replace "REPLACEME" with your team name!
@@ -27,11 +28,39 @@ team_name = "SALMONSHARKS"
 # code is intended to be a working example, but it needs some improvement
 # before it will start making good trades!
 
+class MovingAverager:
+    def __init__(self, window=5):
+        self.queue = []
+        self.window = window
+    
+    def add(self, e):
+        if len(self.queue) < self.window:
+            self.queue.append(e)
+        else:
+            self.queue.pop(0)
+            self.queue.append(e)
+    
+    def get(self):
+        return np.mean(self.queue)
+    
+    def uptrend(self):
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] < 0:
+                return False
+        return True
+    
+    def downtrend(self):
+        for i in range(1, self.window):
+            if self.queue[i] - self.queue[i-1] > 0:
+                return False
+        return True
 
 def main():
     args = parse_arguments()
 
     exchange = ExchangeConnection(args=args)
+
+    averager = MovingAverager()
 
     # Store and print the "hello" message received from the exchange. This
     # contains useful information about your positions. Normally you start with
@@ -114,6 +143,19 @@ def main():
             
             if best_price != old_best_price:
                 print(best_price)
+            if message["symbol"] = 'XLF':
+                current_mid_price = (best_price[message["symbol"]]["BID"] + best_price[message["symbol"]]["ASK"]) / 2
+                averager.add(current_mid_price)
+                if abs(current_holdings['XLF']) < 50:
+                    if averager.uptrend():
+                        print('uptrend, buying')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.BUY, price=best_price["XLF"]['ASK'], size=5)
+                        order_number += 1
+                    if averager.downtrend():
+                        print('downtrend, selling')
+                        exchange.send_add_message(order_id=order_number+1, symbol="XLF", dir=Dir.SELL, price=best_price["XLF"]['BID'], size=5)
+                        order_number += 1
+            
 
         """if current_holdings["VALE"] == 10:
             exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10)
