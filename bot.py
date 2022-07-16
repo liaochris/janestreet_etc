@@ -104,7 +104,7 @@ def main():
             best_price[message["symbol"]]["BID"] = best_price_func("buy") if best_price_func("buy") != None else best_price[message["symbol"]]["BID"]
             best_price[message["symbol"]]["ASK"] = best_price_func("sell") if best_price_func("sell") != None else best_price[message["symbol"]]["ASK"]
 
-            if message['symbol'] == 'VALBZ':
+            """if message['symbol'] == 'VALBZ':
                 if len(message['sell'])>0:
                     valbz_size = message['sell'][0][1]
                     sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number, current_holdings)
@@ -114,15 +114,16 @@ def main():
                 if len(message['buy'])>0:
                     vale_size = message['buy'][0][1]
                     buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number, current_holdings)
-                    order_number+=4
+                    order_number+=4"""
 
             order_number = arbitrage_xlf(exchange, best_price, order_number)
 
-            if current_holdings['VALBZ'] > 0:
+      """      if current_holdings['VALBZ'] > 0:
                 exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.BUY, size=current_holdings['VALBZ'])
             elif current_holdings['VALBZ'] < 0:
                 exchange.send_convert_message(order_id=order_number+1, symbol="VALE", dir=Dir.SELL, size=current_holdings['VALE'])
             order_number += 10
+            """
             time.sleep(.1)
 
 def update_bond_order(exchange, best_price, message, n):
