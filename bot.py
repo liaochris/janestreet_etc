@@ -111,13 +111,14 @@ def update_bond_order(exchange, best_price, message, n):
         exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
     if message["dir"] == "SELL":
         price = max(message["price"], best_price["BOND"]["ASK"], 1001)
-        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=100 - size)
+        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.SELL, price=price, size=100 - size)
 
 def update_holdings(current_holdings, message):
     if message["dir"] == "BUY":
         current_holdings[message["symbol"]] += message["size"]
     if message["dir"] == "SELL":
         current_holdings[message["symbol"]] -= message["size"]
+    print(current_holdings)
     return current_holdings
 
 
