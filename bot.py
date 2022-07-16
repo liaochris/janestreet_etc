@@ -103,13 +103,15 @@ def main():
             best_price[message["symbol"]]["BID"] = best_price_func("buy")
             best_price[message["symbol"]]["ASK"] = best_price_func("sell")
             if message['symbol'] == 'VALBZ':
-                valbz_size = message['sell'][0][1]
-                sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
-                order_number += 3
+                if len(message['sell'])>0:
+                    valbz_size = message['sell'][0][1]
+                    sell_adr(exchange, best_price['VALBZ']['BID'], best_price['VALBZ']['ASK'], valbz_size, order_number)
+                    order_number += 3
             if message['symbol'] == 'VALE':
-                vale_size = message['buy'][0][1]
-                buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number)
-                order_number+=3
+                if len(message['sell'])>0:
+                    vale_size = message['buy'][0][1]
+                    buy_adr(exchange, best_price['VALBZ']['ASK'], best_price['VALE']['BID'], vale_size, order_number)
+                    order_number+=3
 
 def update_bond_order(exchange, best_price, message, n):
     size = message["size"]
