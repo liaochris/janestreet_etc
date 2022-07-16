@@ -111,21 +111,21 @@ def main():
                 fair_value = fair_price_vale_from_basket(best_price)
                 size = message["size"]
                 if message["dir"] == "BUY":
-                    orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 5, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 10, size= size, orders = orders)
                 else:
-                    orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 5, size= size, orders = orders)
+                    orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 10, size= size, orders = orders)
             
             if dir == Dir.SELL:
                 msg = "BID"
             else:
                 msg = "ASK"
-            oldsize = orders[message['symbol']][msg][message['order_id']][1]
-            if message['size'] >= oldsize:
-                del orders[message['symbol']][msg][message['order_id']]
-            else:
-                newsize = oldsize - message['size']
-                oldorder = orders[message['symbol']][msg][message['order_id']]
-                orders[message['symbol']][msg][message['order_id']] = [oldorder[0], newsize]
+            #oldsize = orders[message['symbol']][msg][message['order_id']][1]
+            #if message['size'] >= oldsize:
+            #    del orders[message['symbol']][msg][message['order_id']]
+            #else:
+            #    newsize = oldsize - message['size']
+            #    oldorder = orders[message['symbol']][msg][message['order_id']]
+            #    orders[message['symbol']][msg][message['order_id']] = [oldorder[0], newsize]
             print(message)
 
         elif message["type"] == "error":
@@ -147,10 +147,17 @@ def main():
             if best_price != old_best_price:
                 print(best_price)
         
-        if best_price["VALE"]["BID"] < best_price["VALBZ"]["ASK"] - 5:
+        if best_price["VALE"]["ASK"] < best_price["VALBZ"]["BID"] - 10:
+            fair_value = fair_price_vale_from_basket(best_price)
             orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=Dir.SELL, size = 5, orders = orders)
-        if best_price["VALE"]["ASK"] > best_price["VALBZ"]["BID"] + 5:
+            orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price = fair_value - 10, size= 5, orders = orders)
+            orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price = fair_value + 10, size= 5, orders = orders)
+        if best_price["VALE"]["BID"] > best_price["VALBZ"]["ASK"] + 10:
+            fair_value = fair_price_vale_from_basket(best_price)
             orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=Dir.BUY,size = 5, orders = orders)
+            orders = exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.SELL, price = fair_value + 10, size= 5, orders = orders)
+            orders = exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.BUY, price = fair_value - 10, size= 5, orders = orders)
+
         order_number += 10
 
         if temp and ((datetime.now() - start).total_seconds() > 1):
@@ -164,6 +171,7 @@ def main():
             orders = exchange.send_add_message(order_id=order_number, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 10, size= 10, orders = orders)
             order_number += 1
             temp = False
+        time.sleep(0.01)
 
 
 
@@ -269,7 +277,6 @@ class ExchangeConnection:
         if dir == Dir.SELL:
             orders[symbol]["ASK"][order_id] = [price, size]
         print("orders added")
-        print(orders)
         return orders
 
     def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int, orders: dict):
@@ -287,7 +294,6 @@ class ExchangeConnection:
             orders[symbol]["CONVERT"][order_id] = ["BUY", size]
         if dir == Dir.SELL:
             orders[symbol]["CONVERT"][order_id] = ["SELL", size]
-        print(orders)
         return orders
 
     def send_cancel_message(self, order_id: int):
