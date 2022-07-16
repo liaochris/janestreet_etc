@@ -52,8 +52,7 @@ def main():
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
-    vale_bid_price, vale_ask_price = None, None
-    vale_last_print_time = time.time()
+
     best_price = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
     for id in ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]:
         best_price[id]["BID"] = 0
@@ -101,8 +100,8 @@ def main():
                 if message[side]:
                     return message[side][0][0]
 
-            best_price["BID"][message["symbol"]] = best_price_func("buy")
-            best_price["ASK"][message["symbol"]] = best_price_func("sell")
+            best_price[message["symbol"]]["BID"] = best_price_func("buy")
+            best_price[message["symbol"]]["ASK"] = best_price_func("sell")
 
 
 def update_bond_order(exchange, best_price, message, n):
@@ -119,6 +118,8 @@ def update_holdings(current_holdings, message):
         current_holdings[message["symbol"]] += message["size"]
     if message["dir"] == "SELL":
         current_holdings[message["symbol"]] -= message["size"]
+
+
 
 # ~~~~~============== PROVIDED CODE ==============~~~~~
 
