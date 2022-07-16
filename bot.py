@@ -41,15 +41,6 @@ def main():
     hello_message = exchange.read_message()
     print("First message from exchange:", hello_message)
 
-    # Send an order for BOND at a good price, but it is low enough that it is
-    # unlikely it will be traded against. Maybe there is a better price to
-    # pick? Also, you will need to send more orders over time.
-    order_number = 1
-    exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.BUY, price=999, size=100)
-    order_number += 1
-    exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.SELL, price=1001, size=100)
-    order_number += 1
-
     # Set up some variables to track the bid and ask price of a symbol. Right
     # now this doesn't track much information, but it's enough to get a sense
     # of the VALE market.
@@ -59,10 +50,26 @@ def main():
         best_price[id]["ASK"] = 5000
 
     current_holdings = {'BOND': 0, 'VALBZ': 0, 'VALE': 0, "GS": 0, "MS": 0, "WFC": 0, "XLF": 0}
+    orders = {'BOND': {}, 'VALBZ': {}, 'VALE': {}, "GS": {}, "MS": {}, "WFC": {}, "XLF": {}}
+    for id in ["BOND", "VALBZ", "VALE", "GS", "MS", "WFC", "XLF"]:
+        orders[id]["BID"] = {}
+        orders[id]["ASK"] = {}
+        orders[id]["CONVERT"] = {}
 
     start = datetime.now()
     temp = True
     
+
+    # Send an order for BOND at a good price, but it is low enough that it is
+    # unlikely it will be traded against. Maybe there is a better price to
+    # pick? Also, you will need to send more orders over time.
+    order_number = 1
+    orders = exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.BUY, price=999, size=100, orders = orders)
+
+
+    order_number += 1
+    orders = exchange.send_add_message(order_id=order_number, symbol="BOND", dir=Dir.SELL, price=1001, size=100, orders = orders)
+    order_number += 1
 
     # Here is the main loop of the program. It will continue to read and
     # process messages in a loop until a "close" message is received. You
@@ -91,24 +98,41 @@ def main():
         elif message["type"] == "fill":
             current_holdings = update_holdings(current_holdings, message)
             if message["symbol"] == "BOND":
-                update_bond_order(exchange, best_price, message, order_number)
+                orders = update_bond_order(exchange, best_price, message, order_number, orders)
                 order_number += 1
             if message["symbol"] == "VALE":
                 fair_value = fair_price_vale_from_basket(best_price)
                 size = message["size"]
                 if message["dir"] == "BUY":
-                    exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= size)
+                    exchange.send_add_message(order_id=order_number + 2, symbol="VALE", dir=Dir.BUY, price= fair_value - 10, size= size, orders = orders)
                 else:
-                    exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= size)
-
+                    exchange.send_add_message(order_id=order_number + 3, symbol="VALE", dir=Dir.SELL, price= fair_value + 10, size= size, orders = orders)
             if message["symbol"] == "VALBZ":
                 fair_value = fair_price_vale_from_basket(best_price)
                 size = message["size"]
                 if message["dir"] == "BUY":
-                    exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 5, size= size)
+                    exchange.send_add_message(order_id=order_number + 2, symbol="VALBZ", dir=Dir.BUY, price= fair_value - 5, size= size, orders = orders)
                 else:
-                    exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 5, size= size)
+                    exchange.send_add_message(order_id=order_number + 3, symbol="VALBZ", dir=Dir.SELL, price= fair_value + 5, size= size, orders = orders)
+            
+            if dir == Dir.SELL:
+                msg = "BID"
+            else:
+                msg = "ASK"
+        
+            oldsize = orders[message['symbol']][msg][message['order_id']][1]
+            if message['size'] >= oldsize:
+                del orders[message['symbol']][msg][message['order_id']]
+            else:
+                newsize = oldsize - message['size']
+                oldorder = orders[message['symbol']][msg][message['order_id']]
+                orders[message['symbol']][msg][message['order_id']] = [oldorder[0], newsize]
+            print("message")
             print(message)
+            print("orders")
+            print(orders)
+
+
         elif message["type"] == "error":
             print(message)
         elif message["type"] == "reject":
@@ -129,9 +153,9 @@ def main():
                 print(best_price)
         
         if current_holdings["VALE"] == 10:
-            exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10)
+            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.SELL,size = 10, orders = orders)
         if current_holdings["VALBZ"] == 10:
-            exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10)
+            orders = exchange.send_convert_message(order_id = order_number + 3, symbol="VALE", dir=dir.BUY,size = 10, orders = orders)
         order_number += 10
 
         if temp and ((datetime.now() - start).total_seconds() > 1):
@@ -149,15 +173,15 @@ def main():
 
 
 
-
-def update_bond_order(exchange, best_price, message, n):
+def update_bond_order(exchange, best_price, message, n, orders):
     size = message["size"]
     if message["dir"] == "BUY":
         price = min(message["price"], best_price["BOND"]["BID"], 999)
-        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=size)
+        orders = exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.BUY, price=price, size=size, orders = orders)
     if message["dir"] == "SELL":
         price = max(message["price"], best_price["BOND"]["ASK"], 1001)
-        exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.SELL, price=price, size=size)
+        orders = exchange.send_add_message(order_id=n, symbol="BOND", dir=Dir.SELL, price=price, size=size, orders = orders)
+    return orders
 
 def update_holdings(current_holdings, message):
     if message["dir"] == "BUY":
@@ -232,7 +256,7 @@ class ExchangeConnection:
         return message
 
     def send_add_message(
-            self, order_id: int, symbol: str, dir: Dir, price: int, size: int
+            self, order_id: int, symbol: str, dir: Dir, price: int, size: int, orders: dict
     ):
         """Add a new order"""
         self._write_message(
@@ -245,8 +269,15 @@ class ExchangeConnection:
                 "size": size,
             }
         )
+        if dir == Dir.BUY:
+            orders[symbol]["BID"][order_id] = [price, size]
+        if dir == Dir.SELL:
+            orders[symbol]["ASK"][order_id] = [price, size]
+        print("orders")
+        print(orders)
+        return orders
 
-    def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int):
+    def send_convert_message(self, order_id: int, symbol: str, dir: Dir, size: int, orders: dict):
         """Convert between related symbols"""
         self._write_message(
             {
@@ -257,6 +288,12 @@ class ExchangeConnection:
                 "size": size,
             }
         )
+        if dir == Dir.BUY:
+            orders[symbol]["CONVERT"][order_id] = ["BUY", size]
+        if dir == Dir.SELL:
+            orders[symbol]["CONVERT"][order_id] = ["SELL", size]
+        print(orders)
+        return orders
 
     def send_cancel_message(self, order_id: int):
         """Cancel an existing order"""
